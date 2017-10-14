@@ -63,19 +63,24 @@ class Logger(QtGui.QWidget):
         self.red = "<P><i><FONT COLOR='#ff0000' FONT SIZE = 5>"
         self.green = "<P><i><FONT COLOR='#00ff00' FONT SIZE = 5>"
         self.log.setText(self.green + self.text_dic[0])
+        self.log.setAlignment(QtCore.Qt.AlignCenter)
+        layout = QtGui.QHBoxLayout(self)
+        layout.addWidget(self.log)
 
-    def set_status(self, target, status):
+    def set_status(self, status):
         num = status[0]*4 + status[1]*2 + status[2]*1
         if num == 0:
             self.log.setText(self.green + self.text_dic[num])
+            self.log.setAlignment(QtCore.Qt.AlignCenter)
         else:
             self.log.setText(self.red + self.text_dic[num])
+            self.log.setAlignment(QtCore.Qt.AlignCenter)
 
 if __name__ == '__main__':
 
     import sys
     app = QtGui.QApplication(sys.argv)
-    app.setApplicationName('Phonon Player')
+    app.setApplicationName('the Light')
     player = Player()
     window = QtGui.QWidget()
     logger = Logger()
@@ -83,6 +88,6 @@ if __name__ == '__main__':
     box.addWidget(logger)
     box.addWidget(player)
     window.setLayout(box)
-
     window.show()
+    pdb.set_trace()
     sys.exit(app.exec_())

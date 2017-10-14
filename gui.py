@@ -48,30 +48,28 @@ class Player(QtGui.QWidget):
 class Logger(QtGui.QWidget):
     def __init__(self):
         QtGui.QWidget.__init__(self)
-        self.log_left = QtGui.QLabel()
-        self.log_right = QtGui.QLabel()
-        self.log_mid = QtGui.QLabel()
+        self.log = QtGui.QLabel()
+        self.text_dic = dict()
+        self.text_dic[7] = 'Slow Down! All directions blocked!'
+        self.text_dic[6] = 'Left and center blocked!'
+        self.text_dic[5] = 'Left and right blocked!'
+        self.text_dic[4] = 'Left blocked!'
+        self.text_dic[3] = 'Center and right blocked!'
+        self.text_dic[2] = 'Center blocked!'
+        self.text_dic[1] = 'Right blocked!'
+        self.text_dic[0] = 'All clear!'
 
-        self.obs_text = "watch the obstacle on your "
-        self.clear_text = " clear"
-        self.dir_dic = {0: 'left', 1: 'right', 2: 'center'}
-        self.status = [0, 0, 0]
-
-        self.text = dict()
-        for loc in range(3):
-            self.text[loc] = QtGui.QLabel()
-            self.text[loc].setText(self.dir_dic[loc] + self.clear_text)
-
-        layout = QtGui.QVBoxLayout(self)
-        for loc in range(3):
-            layout.addWidget(self.text[loc])
         
-    def set_status(self, target, status):
-        if status == OBS:
-            self.text[target].setText(self.obs_text + self.dir_dic[target])
-        else:
-            self.text[target].setText(self.dir_dic[target] + self.clear_text)
+        self.red = "<P><i><FONT COLOR='#ff0000' FONT SIZE = 5>"
+        self.green = "<P><i><FONT COLOR='#00ff00' FONT SIZE = 5>"
+        self.log.setText(self.green + self.text_dic[0])
 
+    def set_status(self, target, status):
+        num = status[0]*4 + status[1]*2 + status[2]*1
+        if num == 0:
+            self.log.setText(self.green + self.text_dic[num])
+        else:
+            self.log.setText(self.red + self.text_dic[num])
 
 if __name__ == '__main__':
 
@@ -81,9 +79,9 @@ if __name__ == '__main__':
     player = Player()
     window = QtGui.QWidget()
     logger = Logger()
-    box = QtGui.QHBoxLayout()
-    box.addWidget(player)
+    box = QtGui.QVBoxLayout()
     box.addWidget(logger)
+    box.addWidget(player)
     window.setLayout(box)
 
     window.show()

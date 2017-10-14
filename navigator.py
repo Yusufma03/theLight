@@ -47,7 +47,8 @@ class Player(QtGui.QWidget):
         self.button.clicked.connect(self.handleButton)
         self.logger = Logger()
 
-        self.time_stamp = 0
+        self.MAX_FRAMES = 2000
+        self.FRAME_RATE = 30
         self.sess, self.pred, self.ph = nav_util.module_init()
 
         layout = QtGui.QVBoxLayout(self)
@@ -56,18 +57,22 @@ class Player(QtGui.QWidget):
         layout.addWidget(self.button)
 
 
-    def navi(self, path):
-        cap = skvideo.io.VideoCapture(str(path), frameSize=(1080,1920))
-        while cap.isOpened():
-            for p in range(47):
-                ret, img = cap.read()
-            if ret:
-                blocked_state, out = nav_util.navigation(self.sess, self.pred, self.ph, img)
-                print(blocked_state)
-                self.logger.set_status(blocked_state)
-            else:
-                print('video parsing error.')
-                return
+    def navi(self, frames):
+        frame_count = frames.shape[3]
+        print(frame_count)
+        pick_frame = 0
+        time_start = time.time()
+        print(frame_count)
+        while True:
+            blocked_state, out = nav_util.navigation(self.sess, self.pred, self.ph, frames[:,:,:,pick_frame])
+            thread.start_new_thread(self.logger.set_status, (blocked_state,))
+            time_end = time.time()
+            pick_frame += int((time_end - time_start) * self.FRAME_RATE)
+            print(pick_frame)
+            time_start = time_end
+            if pick_frame > frame_count:
+                break
+            pass
 
     def handleButton(self):
         if self.media.state() == Phonon.PlayingState:
@@ -76,10 +81,21 @@ class Player(QtGui.QWidget):
             path = QtGui.QFileDialog.getOpenFileName(self, self.button.text())
             if path:
                 self.media.setCurrentSource(Phonon.MediaSource(path))
-                thread.start_new_thread(self.navi, (path,))
+                cap = skvideo.io.VideoCapture(str(path), frameSize=(1080,1920))
+                frame_count = 0
+                all_frames = np.zeros([256, 256, 3, self.MAX_FRAMES])
+                while cap.isOpened():
+                    ret, img = cap.read()
+                    if ret:
+                        all_frames[:,:,:,frame_count] = misc.imresize(img, [256, 256])
+                        frame_count += 1
+                    else:
+                        break
+                all_frames = all_frames[:,:,:,0:frame_count]
+                thread.start_new_thread(self.navi, (all_frames,))
                 start = time.time()
                 end = start
-                while end - start < 5:
+                while end - start < 2:
                     end = time.time()
                 self.media.play()
                 

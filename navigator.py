@@ -76,18 +76,21 @@ class Logger(QtGui.QWidget):
             self.log.setText(self.red + self.text_dic[num])
             self.log.setAlignment(QtCore.Qt.AlignCenter)
 
+class Navigator(QtGui.QWidget):
+    def __init__(self):
+        QtGui.QWidget.__init__(self)
+        self.player = Player()
+        self.logger = Logger()
+        box = QtGui.QVBoxLayout()
+        box.addWidget(self.logger)
+        box.addWidget(self.player)
+        self.setLayout(box)
+
 if __name__ == '__main__':
 
     import sys
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName('the Light')
-    player = Player()
-    window = QtGui.QWidget()
-    logger = Logger()
-    box = QtGui.QVBoxLayout()
-    box.addWidget(logger)
-    box.addWidget(player)
-    window.setLayout(box)
-    window.show()
-    pdb.set_trace()
+    nav = Navigator()
+    nav.show()
     sys.exit(app.exec_())

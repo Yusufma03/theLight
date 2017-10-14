@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-
-
 import tensorflow as tf
 import numpy as np
 
@@ -21,9 +19,9 @@ import matplotlib.pyplot as plt
 
 import thread
 from multiprocessing import Queue
+from imageToText import imageToText
 
 IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
-
 NUM_CLASSES = 27
 SAVE_DIR = './output/'
 RESTORE_PATH = './restore_weights/'
@@ -66,95 +64,55 @@ def load(saver, sess, ckpt_path):
     saver.restore(sess, ckpt_path)
     print("Restored model parameters from {}".format(ckpt_path))
 
-def imageToText(preds):
-
-    # print (preds)
-    preds_modify = np.where(preds != 4, np.zeros(preds.shape,dtype=np.int), np.ones(preds.shape,dtype=np.int))
-    parts_name = ['left', 'center', 'right']
-    part_idx = [int(round(preds.shape[2]/3)),int(round(preds.shape[2]*2/3))]
-    height_idx = int(round(preds.shape[1]*2/3))
-    parts = []
-    parts.append(preds_modify[:,height_idx:,:part_idx[0],:])
-    parts.append(preds_modify[:,height_idx:, part_idx[0]:part_idx[1], :])
-    parts.append(preds_modify[:,height_idx:, part_idx[1]:, :])
-
-    def isobstacle(part):
-        percentage_all = np.sum(part)/float(part.size)
-        center = part[:,part.shape[1]/4:,part.shape[2]/4:part.shape[2]*3/4,:]
-        percentage_center = np.sum(center)/float(center.size)
-        print (percentage_all, percentage_center)
-        if percentage_all > 0.9 and percentage_center>0.99:
-            return 0
-        else:
-            return 1
-    out = ''
-
-    obstacle_count = 0
-    blocked = [0,0,0]
-    for i in range(len(parts)):
-        obstacle = isobstacle(parts[i])
-        if obstacle == 1:
-            if obstacle_count >= 1:
-                out += ' and '
-            out += ('Watch your ' + parts_name[i]) if out is '' else parts_name[i]
-            obstacle_count += 1
-            blocked[i] = 1
-    if obstacle_count is 3:
-        out = 'Slow down! All directions blocked.'
-
-    out = 'All clear!' if out is '' else out
-    return blocked, out
-
 def speak(out):
-    import pyttsx
-    engine = pyttsx.init()
-    engine.setProperty('voice', 'english+f3')
-    engine.setProperty('rate', 150)
-    # engine.setProperty('rate', rate - 1)
-    engine.say(out)
-    engine.runAndWait()
+    # import pyttsx
+    # engine = pyttsx.init()
+    # engine.setProperty('voice', 'english+f3')
+    # engine.setProperty('rate', 150)
+    # engine.say(out)
+    # engine.runAndWait()
+    import subprocess
+    subprocess.call('say '+out, shell=True)
 
-# args = get_arguments()
+def module_init():
+    img_paths = ['./1.png', './2.jpg']
+    restore_from = './restore_weights'
+    # Create network.
+    ph = tf.placeholder(tf.float32, (1, 256, 256, 3))
+    net = DeepLabResNetModel({'data': ph}, is_training=False, num_classes=NUM_CLASSES)
+    # Which variables to load.
+    restore_var = tf.global_variables()
 
-img_paths = ['./1.png', './2.jpg']
-restore_from = './restore_weights'
+    #  Predictions.
+    raw_output = net.layers['fc_out']
+    raw_output_up = tf.image.resize_bilinear(raw_output, [256, 256])
+    raw_output_up = tf.argmax(raw_output_up, dimension=3)
+    pred = tf.expand_dims(raw_output_up, dim=3)
 
-# Create network.
-input_placeholder = tf.placeholder(tf.float32, (1, 256, 256, 3))
-net = DeepLabResNetModel({'data': input_placeholder}, is_training=False, num_classes=NUM_CLASSES)
+    # Set up TF session and initialize variables.
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    init = tf.global_variables_initializer()
+    sess.run(init)
 
-# Which variables to load.
-restore_var = tf.global_variables()
+    # Load weights.
+    ckpt = tf.train.get_checkpoint_state(restore_from)
 
-# Predictions.
-raw_output = net.layers['fc_out']
-raw_output_up = tf.image.resize_bilinear(raw_output, [256, 256])
-raw_output_up = tf.argmax(raw_output_up, dimension=3)
-pred = tf.expand_dims(raw_output_up, dim=3)
+    if ckpt and ckpt.model_checkpoint_path:
+        loader = tf.train.Saver(var_list=restore_var)
+        load_step = int(os.path.basename(ckpt.model_checkpoint_path).split('-')[1])
+        load(loader, sess, ckpt.model_checkpoint_path)
+    else:
+        print('No checkpoint file found.')
+        load_step = 0
+    
+    return sess, pred, ph
 
-# Set up TF session and initialize variables.
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
-init = tf.global_variables_initializer()
-
-sess.run(init)
-
-# Load weights.
-ckpt = tf.train.get_checkpoint_state(restore_from)
-
-if ckpt and ckpt.model_checkpoint_path:
-    loader = tf.train.Saver(var_list=restore_var)
-    load_step = int(os.path.basename(ckpt.model_checkpoint_path).split('-')[1])
-    load(loader, sess, ckpt.model_checkpoint_path)
-else:
-    print('No checkpoint file found.')
-    load_step = 0
-
-def prediction_thread_function(pred, img, q):
-    preds = sess.run(pred, feed_dict={input_placeholder: img})
+def prediction_thread_function(sess, pred, ph, img, q):
+    img = img.astype(np.float32)
+    preds = sess.run(pred, feed_dict={ph: img})
     blocked, out = imageToText(preds)
-
     q.put((blocked, out, preds))
 
 def preProcess(img):
@@ -164,11 +122,11 @@ def preProcess(img):
     img = np.expand_dims(img, axis=0)
     return img
 
-# img = misc.imread(filename[0])
-def navigation(img):
+def navigation(sess, pred, ph, img):
     img = preProcess(img)
     q = Queue()
-    thread.start_new_thread(prediction_thread_function, (pred, img, q))
+    print(type(img))
+    thread.start_new_thread(prediction_thread_function, (sess, pred, ph, img, q))
     # can do something else
     blocked, out, _ = q.get()
     thread.start_new_thread(speak, (out,))

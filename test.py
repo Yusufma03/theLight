@@ -11,7 +11,7 @@ with sr.Microphone() as source:
 
 # recognize speech using Sphinx  
 try:  
-    print("Sphinx thinks you said '" + r.recognize_sphinx(audio) + "'")  
+    print("Sphinx thinks you said '" + r.recognize_google(audio) + "'")  
 except sr.UnknownValueError:  
     print("Sphinx could not understand audio")  
 except sr.RequestError as e:  

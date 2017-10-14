@@ -28,14 +28,14 @@ class Menu(QtGui.QWidget):
             print("Say something!")  
             audio = r.listen(source)
 
-        text = r.recognize_sphinx(audio)
+        text = r.recognize_google(audio)
         print("I think you said: " + text)
         return text
 
     def listen(self):
         text = self.rec_audio()
         while True:
-            if 'nav' in text:
+            if 'nav' in text.lower():
                 self.navigator.show()
                 break
             else:

@@ -172,6 +172,7 @@ def navigation(img):
     # can do something else
     blocked, out, _ = q.get()
     thread.start_new_thread(speak, (out,))
+    return blocked, out
 
 # preds = sess.run(pred, feed_dict={input_placeholder: img})
 # cap = skvideo.io.VideoCapture('v.mp4', frameSize=(1080,1920))

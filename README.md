@@ -1,5 +1,5 @@
 # The Light
-
+[Demo video](https://www.youtube.com/watch?v=fH7-_1DjgWs&feature=youtu.be) is available on YouTube.
 
 ## Inspiration
 Today (15 Oct) is the [White Cane Safety Day](https://en.wikipedia.org/wiki/White_Cane_Safety_Day) which is set to celebrate the achievements of people who are visually impaired. There are over 284 million people who are experiencing vision loss worldwidely, where over 39 million people are completely blind. The loss of visual capabilities limited them from moving independently. They need the help of other people or assistance of guide dogs. However these assistances induce high cost.

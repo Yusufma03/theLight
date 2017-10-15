@@ -10,10 +10,12 @@ class Detector(QtGui.QWidget):
         self.text = QtGui.QLabel()
         self.text.setText("Detector")
         self.original = QtGui.QLabel()
-        self.original.setPixmap(QtGui.QPixmap("./logo_resized.png"))
+        self.original.setPixmap(QtGui.QPixmap("./image2.jpg"))
+        self.original.setGeometry(QtCore.QRect(70, 80, 100, 100))
         self.hbox = QtGui.QHBoxLayout()
         self.hbox.addWidget(self.original)
         self.button = QtGui.QPushButton('Choose File', self)
+        # self.handleButton()
         self.button.clicked.connect(self.handleButton)
         
         vbox = QtGui.QVBoxLayout(self)
@@ -24,9 +26,11 @@ class Detector(QtGui.QWidget):
     def handleButton(self):
         path = QtGui.QFileDialog.getOpenFileName(self, self.button.text())
         if path:
+            path = str('./image2.jpg')
             path = str(path)
-            os.chdir('./object_detection')
             self.original.setPixmap(QtGui.QPixmap(path))
+            os.chdir('./object_detection')
+            print(path)
             ret_left, ret_mid, ret_right = detect(path)
             os.chdir('../')
             message = ""

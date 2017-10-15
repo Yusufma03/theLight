@@ -182,7 +182,3 @@ def detect(img):
     return ret_left, ret_mid, ret_right
 
     end = time.time()
-
-    # print('Inference time: ', inf_times)
-    # print('Load model time: ', load_model_end - load_model_start)
-    # print('Processing time: ', end - start)

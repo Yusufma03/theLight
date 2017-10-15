@@ -16,7 +16,7 @@ class Menu(QtGui.QWidget):
         self.navigator_button.clicked.connect(self.handle_navigator)
         self.detector_button = QtGui.QPushButton('Detector', self)
         self.detector_button.setText('Detector')
-        self.detector_button.clicked.connect(self.handle_navigator)
+        self.detector_button.clicked.connect(self.handle_detector)
         self.detector = Detector()
         layout = QtGui.QVBoxLayout(self)
         hbox = QtGui.QHBoxLayout()
@@ -31,28 +31,28 @@ class Menu(QtGui.QWidget):
     def handle_detector(self):
         self.detector.show()
     
-    def rec_audio(self):
-        r = sr.Recognizer()  
-        with sr.Microphone() as source:  
-            print("Please wait. Calibrating microphone...")
-            # listen for 5 seconds and create the ambient noise energy level  
-            r.adjust_for_ambient_noise(source, duration=5)  
-            print("Say something!")  
-            audio = r.listen(source)
+    # def rec_audio(self):
+    #     r = sr.Recognizer()  
+    #     with sr.Microphone() as source:  
+    #         print("Please wait. Calibrating microphone...")
+    #         # listen for 5 seconds and create the ambient noise energy level  
+    #         r.adjust_for_ambient_noise(source, duration=5)  
+    #         print("Say something!")  
+    #         audio = r.listen(source)
 
-        text = r.recognize_google(audio)
-        print("I think you said: " + text)
-        return text
+    #     text = r.recognize_google(audio)
+    #     print("I think you said: " + text)
+    #     return text
 
-    def listen(self):
-        text = self.rec_audio()
-        while True:
-            if 'nav' in text.lower():
-                self.navigator.show()
-                break
-            if 'det' in text.lower():
-                self.detector.show()
-                break
+    # def listen(self):
+    #     text = self.rec_audio()
+    #     while True:
+    #         if 'nav' in text.lower():
+    #             self.navigator.show()
+    #             break
+    #         if 'det' in text.lower():
+    #             self.detector.show()
+    #             break
 
         
 
@@ -62,5 +62,5 @@ if __name__=='__main__':
     app.setApplicationName('the Light')
     menu = Menu()
     menu.show()
-    menu.listen()
+    # menu.listen()
     sys.exit(app.exec_())

@@ -1,6 +1,9 @@
 from navigator import *
 from PyQt4 import QtGui, QtCore
 import speech_recognition as sr
+from detector_gui import *
+
+
 
 class Menu(QtGui.QWidget):
     def __init__(self):
@@ -11,14 +14,23 @@ class Menu(QtGui.QWidget):
         self.navigator_button = QtGui.QPushButton('Navigator', self)
         self.navigator_button.setText('Navigator')
         self.navigator_button.clicked.connect(self.handle_navigator)
+        self.detector_button = QtGui.QPushButton('Detector', self)
+        self.detector_button.setText('Detector')
+        self.detector_button.clicked.connect(self.handle_navigator)
+        self.detector = Detector()
         layout = QtGui.QVBoxLayout(self)
+        hbox = QtGui.QHBoxLayout()
         layout.addWidget(self.logo)
-        layout.addWidget(self.navigator_button)
-        
+        hbox.addWidget(self.navigator_button)
+        hbox.addWidget(self.detector_button)
+        layout.addLayout(hbox)
 
     def handle_navigator(self):
         self.navigator.show()
-
+    
+    def handle_detector(self):
+        self.detector.show()
+    
     def rec_audio(self):
         r = sr.Recognizer()  
         with sr.Microphone() as source:  
@@ -38,8 +50,9 @@ class Menu(QtGui.QWidget):
             if 'nav' in text.lower():
                 self.navigator.show()
                 break
-            else:
-                text = self.rec_audio()
+            if 'det' in text.lower():
+                self.detector.show()
+                break
 
         
 

@@ -2,6 +2,7 @@
 <img src="logo_resized.png" width="25%" />
 
 *The Light* won [the second prize](https://devpost.com/software/thelight) at [2017 iNTUition Hackathon](http://intuition.ieeentu.com)!
+
 [Demo video](https://youtu.be/93FP2pYaPYI) is available on YouTube.
 
 
